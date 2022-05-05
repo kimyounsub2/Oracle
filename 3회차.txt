@@ -1,0 +1,104 @@
+
+현재날짜 대비 생년월일로 일수 구하기
+SELECT TRUNC(SYSDATE - TO_DATE('1993/03/30','YYYY/MM/DD')) "Lived day" , 
+FROM DUAL;
+
+달추가
+SELECT TRUNC(SYSDATE - TO_DATE('1993/03/30','YYYY/MM/DD')) "Lived day" , 
+ROUND(MONTHS_BETWEEN(SYSDATE , TO_DATE('1993/03/30','YYYY/MM/DD'))) "Lived month"
+FROM DUAL;
+
+deptno에 맞게 학과를 지정할수 있다.DECODE함수
+SELECT name, deptno, DECODE(deptno, 101,'컴퓨터공학과' ,
+102, '멀티미디어학과', 
+201, '전자공학과',
+'기계공학과') DNAME
+FROM professor;
+
+case함수
+SELECT name, deptno, sal,
+case WHEN deptno = 101 then sal*0.1
+     WHEN deptno = 102 then sal*0.2
+     WHEN deptno = 201 then sal*0.3
+     ELSE 0
+END bobus
+FROM professor;
+
+카운트 함수
+SELECT COUNT(comm)
+FROM professor
+WHERE deptno = 101;
+
+AVG평균, SUM합계 함수
+SELECT AVG(weight),SUM(weight)
+FROM student
+WHERE deptno = 101;
+
+STDDEV표준편차, VARIANCE분산
+SELECT STDDEV(sal), VARIANCE(sal)
+FROM professor;
+
+----- TEST ------
+1. 사원 테이블(emp)에서 보너스를 받으면 이름과 보너스를 출력하고,
+받지 않으면 이름과 55 출력해 보세요.
+ENAME COMM
+---------- -------
+SMITH 55
+ALLEN 300
+WARD 500
+
+SELECT ename, NVL(TO_CHAR(comm),'55') COMM
+FROM emp;
+
+2. 1980, 1981, 1982, 1987년에 입사한 사원에 대해서 전체 사원 수와
+연도별 사원 수를 출력하는 질의을 작성하세요.
+(열레이블을 부여-아래처럼)
+
+TOTAL 1980 1981 1982 1987
+---------- ---------- ---------- ---------- ----------
+14 1 10 1 2
+
+SELECT COUNT(hiredate) TOTAL,
+COUNT(CASE WHEN SUBSTR(hiredate,1,2) = 80 THEN 80 END) "1980" ,
+COUNT(CASE WHEN SUBSTR(hiredate,1,2) = 81 THEN 81 END) "1981" ,
+COUNT(CASE WHEN SUBSTR(hiredate,1,2) = 82 THEN 82 END) "1982",
+COUNT(CASE WHEN SUBSTR(hiredate,1,2) = 87 THEN 87 END) "1987"
+FROM emp;
+
+3. 101번과 202번 학과에 속하지 않는 모든 교수의 이름과 학과번호를
+교수명 순으로 정렬되도록 출력하세요.
+
+SELECT name, deptno
+from professor
+WHERE not deptno = 101 
+and  not deptno = 202
+order by name;
+
+4. 이름이 '훈'으로 끝나고, 지도교수가 배정되지 않는 201번 학과
+학생의 아이디, 이름, 학년, 학과 번호를 출력하여라.
+
+SELECT userid, name, grade, deptno
+FROM student
+WHERE name like '%훈'
+AND profno IS NULL
+and deptno = 101;
+
+5. 사원테이블에서 급여가 $1,500 ~ $5,000이고 직무가 PRESIDENT나 ANALYST가 아닌
+모든 사원에 대해 사번, 이름, 직무, 급여를 직무,급여의 오름차순으로 정렬 하세요.
+(결과가 아래와 같이 나오도록)
+
+EMPNO ENAME JOB SAL
+-------- ---------- --------- ----------
+7782 CLARK MANAGER 2450
+7698 BLAKE MANAGER 2850
+7566 JONES MANAGER 2975
+7844 TURNER SALESMAN 1500
+7499 ALLEN SALESMAN 1600
+
+SELECT empno, ename, job, sal
+FROM emp
+WHERE sal BETWEEN 1500 AND 5000 
+AND (not job = 'PRESIDENT' 
+and not job = 'ANALYST')
+order by job ASC;
+
