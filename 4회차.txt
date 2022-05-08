@@ -1,0 +1,134 @@
+HAVING절 내부 정렬 과정에 의해 그룹화된 결과 집합에 대해 검색 조건 실행
+WHERE절 그룹화하기 전에 먼저 검색 조건 실행
+
+order by 2 desc; 내림차순
+order by 2 asc; 오름차순
+소문자로 바꿔서 출력하기 :and LOWER(ename) = 'scott';
+
+ROLLUP : 부분합 ex) group by ROLLUP(deptno);
+CUBE : 그룹조합 ex) group by CUBE(deptno,position);
+GROUPING : 사용하면 0,아니면 1 ex) select deptno, grade, count(*), grouping(deptno) grp_dno,
+GROUPING SETS : GROUP BY한 결과를 UNION ALL한 결과와 동일
+ex)
+select deptno,grade,null,count(*)
+from student
+group by deptno, grade
+union all
+select deptno, null,to_char(birthdate, 'yyyy'),count(*)
+from student
+group by deptno,to_char(birthdate,'yyyy');
+
+select deptno, grade,to_char(birthdate, 'yyyy')birthdate,count(*)
+from student
+group by GROUPING SETS((deptno,grade),(deptno, to_char(birthdate,'yyyy')));
+
+HAVING절 : GROUP BY 절에 의해 생성된 그룹을대상으로 조건을 적용
+ex) 학년별로 그룹을 만들었고 having을 사용하여 학생수가 4명 이상인 학년만 나오게 출력하였다.
+select grade, count(*), round(avg(height)) avg_height, round(avg(weight)) avg_weight
+from student
+group by grade
+HAVING count(*) > 4
+order by avg_height desc;
+
+두개 테이블을 join하는 방법 (제일 많이 사용)
+select s.studno, s.name, s.deptno, d.dname, d.loc
+from student s, department d
+where s.deptno = d.deptno
+AND s.name = '전인하';
+
+세개의 테이블 join하는 방법
+select s.studno, s.name, p.name, s.profno, d.dname 
+from student s, professor p, department d
+where s.profno = p.profno 
+and p.deptno = d.deptno;
+
+카티션 곱
+select name, student.deptno, dname, loc
+from student cross join department;
+
+NATURAL JOIN 절 사용
+select name, dname, loc
+from student s NATURAL JOIN department d
+where name like '김%';
+
+JOIN~USING절을 사용하는 방법
+select name, dname, loc
+from student JOIN department  using(deptno)
+where name like '김%';
+
+NON-EQUI JOIN절
+select p.profno, p.name, p.sal, s.grade
+from professor p, salgrade s
+where p.sal between s.losal and s.hisal; 
+
+FULL OUTER JOIN : LEFT OUTER JOIN과 RIGHT OUTER JOIN을 동시에 실행한 결과
+select s.name, s.GRADE, p.name, p.position
+from student s FULL OUTER JOIN professor p
+ON s.profno = p.profno;
+
+SELF JOIN : 하나의 테이블내에 있는 칼럼끼리 연결하는 조인이 필요한 경우
+select a.ename Employee, a.empno Emp#, b.ename Manager, b.empno Mgr# 
+from emp a, emp b
+where a.mgr = b.empno;
+
+1.사원 테이블에서 최대 급여와 최소 급여 사이의 차이를 출력하는 질의를 작성하세요. (열레이블 DIFFERENCE) 
+
+select max(sal) - min(sal) DIFFERENCE
+from emp;
+
+2.총 급여가 $5,000이 넘는 각 JOB에 대해 JOB와 월급 총액을 출력하세요.
+(단, PRESIDENT를 제외시키고, 월급 총액별으로 정렬)
+JOB PAYROLL
+------------------ ----------
+SALESMAN 5600
+ANALYST 6000
+MANAGER 8275
+
+select job , sum(sal) PAYROLL
+from emp
+group by job 
+having sum(sal) > 5000
+order by sum(sal);
+
+/* 3~4번은 employees, departments, locations 테이블 이용 */
+3. Shipping부서에 근무하는 사원에 대해 last_name, job_id, 부서번호,
+부서이름을 last_name 순으로 출력하세요.
+(아래와 같은 결과가 나오도록-45건)
+
+LAST_NAME JOB_ID DEPARTMENT_ID DEPARTMENT_N
+---------- ---------- ------------- ------------
+
+select e.last_name, e.job_id, d.department_id, d.department_name
+from employees e, departments d, locations l
+where e.department_id = d.department_id
+and d.location_id= l.location_id
+and lower(d.department_NAME) = 'shipping'
+order by last_name;
+
+4. south san francisco에서 근무하는 모든 사원에 대해 last_name, job,
+부서번호, 부서이름, 부서위치(city)를 출력하세요.
+(아래와 같은 결과가 나오도록-45건)
+
+LAST_NAME JOB_ID DEPARTMENT_ID DEPARTMENT_N CITY
+---------- ---------- ------------- ------------ -------------------
+
+select e.last_name, e.job_id, d.department_id, d.department_name,l.city
+from employees e, departments d, locations l
+where e.department_id = d.department_id
+and d.location_id= l.location_id
+and lower(l.city) = 'south san francisco';
+
+5.
+CASE 문을 사용하여
+학생 테이블에 주민등록번호를 참조하여 이름, 학번, 태어난 달, 분기를 출력하세요.(1/4, 2/4, 3/4, 4/4)
+
+NAME STUDNO MONTH Quarte
+-------------------- ---------- ---------------- ------
+
+select name, studno,substr(idnum,3,2) MONTH,
+case when SUBSTR(idnum,3,2)<= 3 then '1/4'
+when SUBSTR(idnum,3,2)<= 6 then '2/4'
+when SUBSTR(idnum,3,2)<= 9 then '3/4'
+when SUBSTR(idnum,3,2)<= 12 then '4/4'
+end "Quarte"
+from student;
