@@ -1,0 +1,29 @@
+
+SQL 구조
+SELECT
+FROM
+WHERE
+GROUP BY
+HAVING
+ORDER BY
+
+DESC : 테이블구조 확인
+DISTINCT : 중복키워드 제외하고 출력 ex) SELECT DISTINCT a FROM 
+|| : 합성연산자
+
+WHERE 절의 ROWNUM은 <,<= 조건을 주로 사용
+WHERE ROWNUM < 10 (O)9행만 추출
+WHERE ROWNUM = 1 (O)1행만 추출
+WHERE ROWNUM = 2 (X)
+1로 시작해야 작동하고 1로 시작하지 않으면 원하는 결과를 뽑지 못한다.
+
+DUAL테이블
+1. 사용자가 계산식의 실행이나 사용자 함수를 각종 테스트 할때 사용
+
+WHERE연산자
+AND : WHERE A = 1 AND A=2;
+OR : WHERE A OR B;
+NOT : WHERE NOT A = 1 ;
+BETWEEN a and b : a와 b 사이의 값, a,b도 포함
+IN(a,b,c ~~~,n) : a,b,c ~~,n중의 하나와 일치하면 참
+LIKE : 문자 패턴과 부분적으로 일치(%_)gkaus cka
