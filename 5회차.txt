@@ -1,0 +1,151 @@
+서브쿼리
+select studno, name, grade 
+from student
+where grade = (select grade 
+                from student 
+                where userid = 'jun123');
+
+select deptno 학과번호, count(name) 학생수
+from student
+group by deptno
+having count(name) = (select max(count(name)) 
+                      from student 
+                      group by deptno);
+
+select * from emp;
+select deptno, ename, sal
+from emp
+where (deptno,sal) in (select deptno,max(sal) from emp group by deptno)
+order by deptno;
+
+인라인뷰
+select s1.name, s1.deptno, s1.height 
+from student s1,(select deptno, avg(height) height 
+                 from student
+                 group by deptno)s2
+where s1.deptno = s2.deptno
+and s1.height > s2.height
+order by s1.deptno;
+
+단일행 입력
+insert into student
+values(10110,'홍길동','hong','1','8501011143098','85/01/01','041)630-3114',170,70,101,9903); 모든컬럼 입력해줘야 한다.
+select studno,name
+from student
+where studno = 10110;
+commit;
+
+insert into department(deptno,dname) 두개의 컬럼만 입력
+values(300,'생명공학부');
+commit;
+select * 
+from department
+where deptno = 300;
+
+테이블 생성
+create table T_STUDENT
+as select * from student
+where 1=0;
+데이터 추가
+insert into T_STUDENT
+select*from student;
+
+테이블 생성
+CREATE table height_info (
+studno number(5),
+name varchar2(10),
+height number(5,2));
+
+create table weight_info(
+studno number(5),
+name varchar2(10),
+weight number(5,2));
+생성된 테이블 확인
+desc height_info;
+desc weight_info;
+
+1. 사원 테이블(emp)에서 사번, 이름으로 구성된 테이블 emp1, emp2를 생성해보세요
+CREATE TABLE emp1
+AS SELECT empno, ename
+FROM emp
+WHERE 1=2; 거짓조건 빠르게 테이블을 만들기 위해
+
+CREATE TABLE emp2
+AS SELECT empno, ename
+FROM emp
+WHERE 1=2;
+
+2. 사원 테이블에서 사번이 7300~7800까지인 사원의 사번, 이름은 emp1테이블에 입력
+3. 사번이 7801 ~ 8000까지인 사원의 사번, 이름은 emp2 테이블에 입력하세요
+insert all
+when empno between 7300 and 7800 then
+    into emp1 values(empno, ename) 
+when empno between 7081 and 8000 then
+    into emp2 values(empno, ename)
+select empno, ename
+from emp;
+
+업데이트 테이블
+4. 교수 테이블에서 성현의 교수의 직급과 동일 직급을 가진 교수들 중 현재 급여가 410이 안되는 교수들의 급여를 12% 인상하세요
+update professor
+set sal = sal*1.12
+where position = (select position
+                      from professor
+                      where name = '성현희')
+and sal < 410;
+
+6. 컴퓨터 공학과 학생들의 몸무게를 88로 수정해 보세요
+update student
+set weight = 88
+where deptno = (select deptno
+                from department
+                where dname = '컴퓨터공학과');
+
+1. 교수 테이블에서 교수 번호, 교수 이름으로 구성된 테이블 PROF1, PROF2를 생성해 보세요
+
+CREATE TABLE PROF1
+AS SELECT profno, name
+FROM professor
+WHERE 1=2; 
+
+CREATE TABLE PROF2
+AS SELECT profno, name
+FROM professor
+WHERE 1=2;
+
+2. 교수 테이블에서 교수 번호가 9901~9905까지인 교수의 교수번호와 이름은 prof1 테이블에 입력
+교수 번호가 9906~9920까지인 교수의 교수번호와 이름은 prof2 테이블에 입력 입력해 보세요.
+
+insert all
+when profno between 9901 and 9905 then
+    into PROF1 values(profno, name)
+when profno between 9906 and 9920 then
+    into PROF2 values(profno, name)
+select profno, name
+from professor;
+
+select * from prof1;
+select * from prof2;
+
+3. 각 학과별로 입사일이 가장 오래된 교수의 교수번호와 이름, 입사일, 학과명을 출력하세요.
+(입사일 순으로 정렬하세요.)
+
+교수 NO. 교수명 입사일 학과
+===== ===== ===== ===========
+select  p.profno "교수 NO", p.name 교수명, p.hiredate 입사일, d.dname 학과
+from professor p, department d
+where p.deptno = d.deptno
+and hiredate in (select min(hiredate)from professor  group by deptno);
+
+4. 남은혁 교수의 userid 를 black으로 변경해 보세요.
+update professor
+set userid = 'black'
+where name = (select name
+              from professor
+              where name = '남은혁');
+
+5. CHICAGO에 근무하고 커미션을 받는 사원들의 급여를 10% 인상하세요
+update emp
+set sal = sal*1.10
+where deptno = (select deptno from dept where loc = 'CHICAGO' )
+ and comm is not null;
