@@ -1,0 +1,130 @@
+테이블 데이터를 삭제하고 다시 처음부터 되돌리고 싶을떄
+run sql command line에서
+conn hr/hr
+@c:\table.sql
+
+6. 총 급여가 $5,000이 넘는 각 JOB에 대해 JOB와 월급 총액을 출력하세요.
+(단, PRESIDENT를 제외시키고, 월급 총액별으로 정렬)
+
+select job, sum(sal)
+from emp
+where not job = 'PRESIDENT'
+group by job
+having sum(sal) > 5000;
+
+CASE 문 
+첫번째 방식
+CASE 대상값 WHEN 값1 THEN 결과1 
+	     WHEN 값2 THEN 결과2 
+		. 
+		.
+		. 
+	     WHEN 값n THEN 결과m END;
+두번째 방식
+CASE WHEN 조건1 THEN 결과1 
+        WHEN 조건2 THEN 결과2 
+		. 
+		. 
+		. 
+        WHEN 조건n THEN 결과m END;
+
+서브쿼리 이용하여 데이터 삭제
+delete from student
+where deptno in (select deptno
+                from professor
+                where deptno in (101,102));
+
+MERGE사용방법
+merge into professor p
+using professor_temp f
+on (p.profno = f.profno)
+when matched then
+update set p.position = f.position
+when not matched then
+insert values(f.profno, f.name,f.userid,f.position,f.sal,f.hiredate,f.comm,f.deptno);
+
+컬럼추가
+alter table address
+add(comments varchar2(200) default 'No Comment');
+desc address;
+
+컬럼구조 변경
+alter table address
+modify phone varchar2(50);
+desc address;
+
+테이블 이름변경
+rename adr_second to client_address;
+
+테이블 삭제
+drop table addr_third;
+
+테이블 구조는 그대로 유지하고 테이블의 데이터와 할당된 공간만 삭제 TRUNCATE함수
+TRUNCATE TABLE client_address;
+
+주석추가
+COMMENT ON TABLE address -> TABLE테이블 주석추가
+is '고객 주소록을 관리하기 위한 테이블';
+COMMENT ON COLUMN address.name ->, COLUMN컬럼 주석추가
+is '고객 이름';
+테이블 주석 확인
+select comments
+from user_tab_comments
+where table_name = 'ADDRESS';
+컬럼 주석 확인
+select * from user_col_comments
+where table_name = 'ADDRESS';
+
+USER_ 객체의 소유자만 접근가능
+select table_name from user_tables;
+
+ALL_ 자기 소유 또는 권한을 부여 받은 객체만
+select owner, table_name FROM all_tables;
+
+DBA_데이터베이스 관리자만 접근가능
+select owner, table_name from dba_tables; -> conn system/manager로 접근가능
+
+1. 아래와 같이 EMPLOYEE 테이블을 생성하세요.
+
+create table EMPLOYEE(
+EMPLOYEE_id    NUMBER(7),
+LAST_NAME   VARCHAR2(25),
+FIRST_NAME  VARCHAR2(25),
+DEPT_ID NUMBER(7),
+PHONE_NUMBER    VARCHAR2(20));
+desc EMPLOYEE
+
+2. EMPLOYEE_ID열을 사용하여 EMPLOYEE 테이블에 PRIMARY KEY 제약조건을 추가하세요.
+alter table EMPLOYEE add constraints EMPLO_pk primary key(EMPLOYEE_id);
+
+3. EMPLOYEE 테이블을 수정하십시오. NUMBER(7)로 데이터 열의 SALARY를 추가합니다.
+ALTER TABLE EMPLOYEE ADD(SALARY NUMBER(7));
+
+4. 3.에서 생성한 테이블에 아래와 같이 3건의 데이터를 입력하세요.
+EMPLOYEE_ID LAST_NAME FIRST_NAME DEPT_ID PHONE_NUMBER SALARY
+--------------------------------------------------------------------------------------
+1 Biri Ben 10 123-4566 1100
+2 Dancs Betty 20 123-7890 1860
+3 Newman Chad 20 123-8888 2200
+insert into EMPLOYEE values(1,'Biri','Ben',10,'123-4566',1100);
+insert into EMPLOYEE values(2,'Dancs','Batty',20,'123-7890',1860);
+insert into EMPLOYEE values(3,'Newman','Chad',20,'123-8888',2200);
+
+5.위 EMPLOYEE 테이블의 DEPTNO는 DEPT테이블의 DEPTNO 컬럼을 참조하게 제약 조건을 설정해 보세요
+alter table EMPLOYEE add constraints EMPLO_fk
+foreign key(DEPTNO) references dept(DEPTNO);
+
+6. INSERT INTO employee(employee_id, first_name, deptno)
+VALUES(4, 'cindy',50);
+데이터를 입력하려고 하였으나 실패하였다. 이유는?
+
+5번에 참조걸었던 dept테이블에 deptno가 50이 없기 때문에 제약조건에 위배된다.
+
+7. LAST_NAME 필드를 25-->30으로 수정하세요.
+
+ALTER TABLE EMPLOYEE 
+MODIFY last_name VARCHAR2(30);
+
+8. 생성한 EMPLOYEE 테이블을 삭제해 보세요.
+DROP TABLE EMPLOYEE ;
+
