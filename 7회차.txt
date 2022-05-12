@@ -1,0 +1,134 @@
+하나의 테이블로 단순뷰 생성하기
+create view v_stud_dept101 as
+        select studno, name, deptno
+        from student
+        where deptno =101;
+생성한 뷰 확인하기
+select * from v_stud_dept101;
+
+두개의 테이블로 복합뷰 생성하기
+create view v_stud_dept102 as 
+	select s.studno, s.name, s.grade, d.dname
+	from student s, department d
+	where s.deptno = d.deptno and s.deptno = 102;
+생성한 뷰확인하기
+select * from v_stud_dept102;
+
+20번 부서 사원의 사번, 이름, 부서번호, 부서이름, 부서 위치를 포함하는 DEPT20뷰를 생성하세요
+select * from emp;
+select * from dept;
+create view DEPT20 as
+    select e.empno, e.ename, e.deptno, d.dname, d.loc
+    from emp e, dept d
+    where e.deptno = d.deptno
+    and e.deptno = 20;
+select * from dept20;
+
+1. cat/cat123이라는 유저를 생성해보세요 (디폴트테이블스페이스는 users,temp)
+create user cat identified by cat123
+default tablespace users
+temporary tablespace temp;
+
+2. 아이디 생성하고 그 아이디에 접속여부 권한을 줘야한다
+GRANT connect, resource to cat;
+
+3. cat에게 hr의 professor 테이블을 검색할 수 있는 권한을 부여해 보세요
+grant select on hr.student to cat;
+
+4. 확인하기
+select * from cat.student;
+
+테이블스페이스 위치 확인
+SELECT FILE_ID,TABLESPACE_NAME,FILE_NAME from dba_data_files;
+
+용량 확인
+select owner, tablespace_name, sum(bytes)
+from dba_segments
+group by owner, tablespace_name
+
+객체를 변경할수 있는 권한
+grant update(height,weight) on student to tiger;
+
+테이블 권한조회1
+select * from user_tab_privs_made;
+select * from user_tab_privs_recd;
+
+컬럼 권한조회2
+select * from user_col_privs_made;
+select * from user_col_privs_recd;
+
+REVOKE UPDATE on student FROM tiger; 업데이트권한 철회
+REVOKE SELECT on student FROM tiger; 조회권한 철회
+
+롤생성 및 비밀번호
+create role hr_mgr 아이디 생성
+create role hr_mgr 아이디 입력하고 비밀번호 생성
+	identified by manager;
+롤에 시스템 권한 부여
+GRANT create session to hr_mgr;
+롤에 객체 권한 부여
+GRANT select, insert, delete on hr.student to hr_clerk;
+
+1. 사원 테이블의 DEPTNO와 ENAME로 결합인덱스를 생성하여라.
+(결합 인덱스의 이름은 fidx_emp_no_ename)
+(단, DEPTNO 칼럼 내림차순, ENAME칼럼은 오름차순으로 생성)
+
+create index fidx_emp_no_ename on emp(deptno desc,ename asc);
+
+2. fidx_emp_no_ename 인덱스를 삭제하여라.
+
+drop index fidx_emp_no_ename;
+
+3. system이나 sys 소유의 EMPLOYEE 테이블을 생성하고, 데이터를 하나 입력하라.
+Name Null Type
+-------- ------------- ------------
+ID NUMBER(7)
+LAST_NAME VARCHAR2(25)
+FIRST_NAME VARCHAR2(25)
+DEPT_ID NUMBER(7)
+
+conn system/manager
+ create table EMPLOYEE(
+ID number(7),
+LAST_NAME varchar2(25),
+FIRST_NAME varchar2(25),
+DEPT_ID number(7));
+
+desc employee;
+
+4. system의 employee테이블에 대해 pub_employee라는 공용 동의어를 생성하여라.
+
+CREATE PUBLIC SYNONYM pub_employee FOR employee;
+
+5. ohappy라는 테이블스페이스를 100m로 만드세요.
+
+create tablespace ohappy datafile 'C:\oraclexe\app\oracle\oradata\XE\ohappy.dbf' size 100m;
+
+6. ohappy/happy**12 유저를 생성하세요.(테이블스페이스는 ohappy, temp를 사용토록)
+
+create user ohappy identified by "happy**12"
+default tablespace ohappy
+temporary tablespace temp;
+
+7. 4에서 생성한 공용 동의어에 의해 system소유의 employee 테이블을 ohappy 유저가 조회하도록 하여라.
+
+SQL> conn system/manager
+Connected.
+SQL> grant connect, resource to ohappy;
+Grant succeeded.
+SQL> grant select on system.employee to ohappy;
+Grant succeeded.
+
+conn  ohapp/happy**12
+select * from employee;
+
+8. 공용동의어 pub_employee를 삭제 하세요.
+DROP PUBLIC SYNONYM pub_employee;
+
+9. emp, dept 테이블을 조회하여 부서번호와 부서별 최대 급여, 부서명을 출력해 보세요.
+DEPTNO DNAME SAL
+---------- ---------------- ----------
+select e.deptno,d.dname,e.sal
+from (select deptno,max(sal) sal from emp group by deptno) e ,dept d
+where e.deptno = d.deptno
+order by 1;
