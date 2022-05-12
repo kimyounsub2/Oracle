@@ -1,0 +1,136 @@
+계층적 질의문 Top Down방식
+select lpad('   ',(level-1)*8) ||dname 조직도
+from department
+start with dname = '공과대학'
+connect by prior deptno = college;
+
+계층적 질의문 Botton Up방식
+select deptno, dname, college
+from department
+start with deptno = 10
+connect by prior college = deptno;
+
+계층적 질의문 connect_by_root : Level이 1인 최상위로우(ROOT Node)의 정보를 얻어올수 있다.
+select * from emp;
+select lpad('   ',4*(level-1)) || ename 사원명
+    ,empno 사번
+    ,connect_by_root empno 최상위사번
+    ,level
+from emp
+start with job = upper('President')
+connect by prior empno = mgr;
+
+계층적 질의문 connect_by_isleaf : 로우의 최하위레벨(Leaf)여부를 반환한다. 최하위 레벨 1, 아니면 0
+select lpad('   ',4*(level-1)) || ename 사원명
+    ,empno 사번
+    ,connect_by_ISLEAF Leaf_YN
+    ,level
+from emp
+start with job = upper('President')
+connect by prior empno = mgr;
+
+계층적 질의문 sys_connect_by_path : Leaf Node만 전체 PATH정보가 나오도록 할수가 있다.
+select lpad('   ',4*(level-1)) || ename 사원명
+    ,empno 사번
+    ,sys_connect_by_path(ename,'/') path
+    ,level
+from emp
+start with job = upper('President')
+connect by nocycle prior empno = mgr;
+
+1.계층적 질의문을 사용하여 사원 테이블에서 급여가 1000이상이고 관리자 번호가 7698인 사원의 관리자#, 사번, 사원명 순으로 출력하세요
+select * from emp;
+select mgr "관리자 사번", empno, ename, sal
+from emp
+where sal >=1000
+start with mgr = 7698
+connect by prior empno = mgr
+order by ename;
+
+2.
+계층적 질의문을 사용하여 아래와 같이 출력해 보세요.
+
+관리자 사번 empno ename
+==================================
+7839 KING
+----7839 7566 JONES
+--------7566 7788 SCOTT
+------------7788 7876 ADAMS
+--------7566 7902 FORD
+------------7902 7369 SMITH
+
+=============================================================
+SELECT LPAD(mgr, (LEVEL)*4, '-') "관리자 사번", empno, ename
+FROM emp
+START WITH mgr is null
+connect by prior empno = mgr;
+
+
+--채움문자 수 만큼 왼쪽부터 채움문자로 채워지고, 채움문자를 지정하지지
+않을 경우는 공백으로 채워진다.
+
+SELECT 30 , LPAD(30, 5) , LPAD(30, 5, '0') , LPAD(30, 5, 'A') FROM SYS.DUAL;
+
+1. 운영체제(Win,Unix,Linux)
+2. DB STARTUP
+3. 리스너 구동 --> 원격 접속이 가능함
+
+//db shutdown
+conn /as sysdba 관리자 아이디로 접속
+shoutdown immedite;  --> 진행중인 transaction 강제 Rollbck
+
+//db startup
+conn /as sysdba
+startup 운영체제에서 리스너 기동(유닉스 or 리눅스, 윈도우즈는 자동으로 올라옴)
+
+배업받기
+exp system/manager tables=(hr.emp, hr.dept) grants=y indexes=y
+C:\Users\A\EXPDAT.DMP
+
+복원하기
+imp system/manager file=expdat.dmp fromuser=hr touser= system tables=(dept,emp)
+
+1. test1라는 테이블 스페이스를 기본 100m로 생성하세요
+
+create tablespace test1 datafile 'C:\oraclexe\app\oracle\oradata\XE\test1.dbf' size 100m;
+
+2. hr의 professor, student 테이블을 백업 받고,
+
+exp system/manager tables=(hr.professor, hr.student) grants=y indexes=y
+
+3. ttest/ttest333## 이라는 유저 생성후 디폴트 테이블 스페이스는 ttest,
+temporary 테이블 스페이스는 temp을 지정하세요.
+
+create user test1 identified by "tesr11!!"
+default tablespace test1
+temporary tablespace temp;
+
+4. 3.에서 백업 받은 HR의 professor, student테이블을 ttest에게 import시키고
+import되었는지 확인하세요.
+
+C:\Users\A>imp system/manager file=expdat.dmp fromuser=hr touser= test1 tables=(professor,student)
+
+5. test1에 주문관리 테이블 인스턴스를 기반으로 s_order 테이블을 만들어 보세요.
+
+create table s_order(
+  2  ID number(7),
+  3  CUSTOMER_ID number(7),
+  4  DATE_ORD date,
+  5  TOTAL number(11,2),
+  6  PAYMENT_TYPE varchar(6));
+
+alter table s_order add constraints s_or_pk primary key(id);
+alter table s_order add constraints s_or check (PAYMENT_TYPE in('현금','카드'));
+alter table s_order modify CUSTOMER_ID not null;
+
+6. s_order 테이블에 데이터를 입력하세요.
+
+insert into s_order values(100,204, '18/08/07', 6110000,'카드') ;
+insert into s_order values(102,206, '18/09/07', 1865600,'현금') ;
+insert into s_order values(103,206, '18/10/07', 1865600,'현금') ;
+
+7. s_order 테이블의 103번 주문의 지불방식을 ‘카드’로 변경해 보세요.
+
+update s_order
+set payment_type = '카드'
+where id = 103 ;
